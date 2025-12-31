@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Income Tracker - Viral Ledger</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        .header p {
+            opacity: 0.9;
+        }
+        .content {
+            padding: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 14px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+            transition: transform 0.2s;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        .btn:active {
+            transform: translateY(0);
+        }
+        .income-list {
+            margin-top: 30px;
+        }
+        .income-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: transform 0.2s;
+        }
+        .income-item:hover {
+            transform: translateX(5px);
+            background: #e9ecef;
+        }
+        .income-info {
+            flex: 1;
+        }
+        .income-source {
+            font-weight: 600;
+            color: #333;
+            font-size: 1.1em;
+        }
+        .income-date {
+            color: #666;
+            font-size: 0.9em;
+        }
+        .income-amount {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #28a745;
+        }
+        .delete-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        .total-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-top: 30px;
+            text-align: center;
+        }
+        .total-label {
+            font-size: 1.2em;
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+        .total-amount {
+            font-size: 3em;
+            font-weight: bold;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+        .category-badge {
+            background: #667eea;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💰 Income Tracker</h1>
+            <p>Track and manage your income sources</p>
+        </div>
+        
+        <div class="content">
+            <form id="incomeForm">
+                <div class="form-group">
+                    <label for="source">Income Source</label>
+                    <input type="text" id="source" placeholder="e.g., Salary, Freelance, Investment" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="amount">Amount ($)</label>
+                    <input type="number" id="amount" placeholder="0.00" step="0.01" min="0" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="category">Category</label>
+                    <select id="category" required>
+                        <option value="">Select category</option>
+                        <option value="Salary">Salary</option>
+                        <option value="Freelance">Freelance</option>
+                        <option value="Business">Business</option>
+                        <option value="Investment">Investment</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="date">Date</label>
+                    <input type="date" id="date" required>
+                </div>
+                
+                <button type="submit" class="btn">Add Income</button>
+            </form>
+            
+            <div class="income-list">
+                <h2 style="margin-bottom: 20px; color: #333;">Recent Income</h2>
+                <div id="incomeItems"></div>
+            </div>
+            
+            <div class="total-section">
+                <div class="total-label">Total Income</div>
+                <div class="total-amount">$<span id="totalAmount">0.00</span></div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let incomes = JSON.parse(localStorage.getItem('incomes')) || [];
+        
+        document.getElementById('date').valueAsDate = new Date();
+        
+        document.getElementById('incomeForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const income = {
+                id: Date.now(),
+                source: document.getElementById('source').value,
+                amount: parseFloat(document.getElementById('amount').value),
+                category: document.getElementById('category').value,
+                date: document.getElementById('date').value
+            };
+            
+            incomes.unshift(income);
+            localStorage.setItem('incomes', JSON.stringify(incomes));
+            
+            this.reset();
+            document.getElementById('date').valueAsDate = new Date();
+            displayIncomes();
+        });
+        
+        function displayIncomes() {
+            const container = document.getElementById('incomeItems');
+            
+            if (incomes.length === 0) {
+                container.innerHTML = '<div class="empty-state">No income entries yet. Add your first one above!</div>';
+                document.getElementById('totalAmount').textContent = '0.00';
+                return;
+            }
+            
+            container.innerHTML = '';
+            let total = 0;
+            
+            incomes.forEach(income => {
+                total += income.amount;
+                
+                const item = document.createElement('div');
+                item.className = 'income-item';
+                item.innerHTML = `
+                    <div class="income-info">
+                        <div class="income-source">
+                            ${income.source}
+                            <span class="category-badge">${income.category}</span>
+                        </div>
+                        <div class="income-date">${new Date(income.date).toLocaleDateString()}</div>
+                    </div>
+                    <div>
+                        <span class="income-amount">$${income.amount.toFixed(2)}</span>
+                        <button class="delete-btn" onclick="deleteIncome(${income.id})">×</button>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+            
+            document.getElementById('totalAmount').textContent = total.toFixed(2);
+        }
+        
+        function deleteIncome(id) {
+            incomes = incomes.filter(income => income.id !== id);
+            localStorage.setItem('incomes', JSON.stringify(incomes));
+            displayIncomes();
+        }
+        
+        displayIncomes();
+    </script>
+</body>
+</html>
